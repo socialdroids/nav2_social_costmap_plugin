@@ -229,24 +229,29 @@ namespace nav2_social_costmap_plugin
   void SocialLayer::updateCosts(nav2_costmap_2d::Costmap2D &master_grid,
                                 int min_i, int min_j, int max_i, int max_j)
   {
+    // I had to add this because nobody is setting this
+    // to true in Humble for some reason, so the controller_server
+    // get stuck in an infinite loop waiting for the layers
+    // to be current
+    current_ = true;
 
     // auto nod = node_.lock();
     // RCLCPP_INFO(logger_, "SocialLayer::updateCosts. min_i: %i, max_i: %i, min_j: %i, max_j: %i", min_i, max_i, min_j, max_j);
     if (!enabled_)
     {
-      RCLCPP_INFO(logger_, "SocialLayer::updateCosts. Disabled");
+      RCLCPP_INFO_ONCE(logger_, "SocialLayer::updateCosts. Disabled");
       return;
     }
 
     if (people_list_.people.size() == 0)
     {
-      RCLCPP_INFO(logger_, "SocialLayer::updateCosts. No people");
+      RCLCPP_DEBUG(logger_, "SocialLayer::updateCosts. No people");
       return;
     }
 
     if (cutoff_ >= amplitude_)
     {
-      RCLCPP_INFO(logger_, "SocialLayer::updateCosts. cutoff: %f, amplitude: %f", cutoff_, amplitude_);
+      RCLCPP_INFO_ONCE(logger_, "SocialLayer::updateCosts. cutoff: %f, amplitude: %f", cutoff_, amplitude_);
       return;
     }
     // RCLCPP_INFO(nod->get_logger(), "SocialLayer::updateCosts. people: %i", (int)people_list_.people.size());
@@ -435,12 +440,6 @@ namespace nav2_social_costmap_plugin
     }
     if (publish_occgrid_)
       grid_pub_->publish(grid);
-
-    // I had to add this because nobody is setting this
-    // to true in Humble for some reason, so the controller_server
-    // get stuck in an infinite loop waiting for the layers
-    // to be current
-    current_ = true;
   }
 
   double SocialLayer::gaussian(double x, double y, double x0, double y0, double A,
